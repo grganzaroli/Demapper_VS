@@ -42,16 +42,22 @@ int _tmain(int argc, _TCHAR* argv[])
 	gr_complex tab[mod_size];
 	float D[2];
 	float var = 1; //variancia do ruido
+	int opt = 1; // opção por demap hard ou soft
 
 
 	gr_complex in[size]; //entrada IQ
+
+
+
 	float aux_r[mod_size]; //aux real
 	float aux_i[mod_size]; //aux imag
 	float aux[mod_size]; //aux dist euclidiana
+
+
+
 	int out_hard[size]; //saida hard int
 	int *out = new int[size*M]; //saida bits int
 	float *out_soft = new float[size*M]; //saida bits LLR
-
 
 
 
@@ -109,53 +115,53 @@ int _tmain(int argc, _TCHAR* argv[])
 			aux[j] = sqrt(aux_r[j]*aux_r[j] + aux_i[j]*aux_i[j]);
 
 
-		out_hard[i] = 0;	
-		// hard-decision
-		for(int j = 1; j < mod_size; j++) //cada simbolo possivel
+		if(opt == 0) // hard-decision
 		{
-			if(aux[j] < aux[out_hard[i]])
-				out_hard[i] = j; //(falta separar os bits)
-		}
-
-		for(int j = 1; j <= M; j++) //cada bit do simbolo
-		{
-			if(j == 1)
-				out[i*M+M-j] = out_hard[i]%(int)(pow(2,j));//isolar bit
-			else
-				out[i*M+M-j] = (out_hard[i]%(int)(pow(2,j)))/(pow(2,(j-1))); //isolar bit
-
-		}
-
-
-
-
-		//soft-decision
-		for(int j = 1; j <= M; j++) //cada bit do simbolo
-		{
-			D[0] = 999;
-			D[1] = 999;
-
-			for(int k = 0; k < mod_size; k++) //cada simbolo possivel
+			out_hard[i] = 0;	
+			for(int j = 1; j < mod_size; j++) //cada simbolo possivel
 			{
-
-				if(j == 1)
-					a = k%(int)(pow(2,j));//isolar bit
-				else
-					a = (k%(int)(pow(2,j)))/(pow(2,(j-1))); //isolar bit
-
-				if(a == 0)//bit 0
-				{
-					if(aux[k] < D[0])
-						D[0] = aux[k];
-				}
-				else if(a == 1)//bit 1
-				{
-					if(aux[k] < D[1])
-						D[1] = aux[k];
-				}
+				if(aux[j] < aux[out_hard[i]])
+					out_hard[i] = j; //(falta separar os bits)
 			}
 
-			out_soft[i*M+M-j] = -1/(var*var)*(D[1]-D[0]); //saida LLR do bit
+			for(int j = 1; j <= M; j++) //cada bit do simbolo
+			{
+				if(j == 1)
+					out[i*M+M-j] = out_hard[i]%(int)(pow(2,j));//isolar bit
+				else
+					out[i*M+M-j] = (out_hard[i]%(int)(pow(2,j)))/(pow(2,(j-1))); //isolar bit
+
+			}
+		}
+		else if(opt == 1)//soft-decision
+		{
+			for(int j = 1; j <= M; j++) //cada bit do simbolo
+			{
+				D[0] = 999;
+				D[1] = 999;
+
+				for(int k = 0; k < mod_size; k++) //cada simbolo possivel
+				{
+
+					if(j == 1)
+						a = k%(int)(pow(2,j));//isolar bit
+					else
+						a = (k%(int)(pow(2,j)))/(pow(2,(j-1))); //isolar bit
+
+					if(a == 0)//bit 0
+					{
+						if(aux[k] < D[0])
+							D[0] = aux[k];
+					}
+					else if(a == 1)//bit 1
+					{
+						if(aux[k] < D[1])
+							D[1] = aux[k];
+					}
+				}
+
+				out_soft[i*M+M-j] = -(1/var)*(D[1]-D[0]); //saida LLR do bit
+			}
 		}
 	}
 
