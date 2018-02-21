@@ -3,40 +3,62 @@
 
 #include "stdafx.h"
 #include <cmath>
-
-class gr_complex
-{
-private:
-	float re, im;
-	int val;
-public:
-	void set(float r, float i);
-	float real();
-	float imag();
-};
-
-void gr_complex::set(float r, float i)
-{
-	re = r;
-	im = i;
-}
-
-float gr_complex::real()
-{
-	return re;
-}
-
-float gr_complex::imag()
-{
-	return im;
-}
-
+#include "damap.h"
 
 #define size 16200 //short frame
 #define mod_size 16 // 16-QAM
 #define rate 6 // 6/15
 
 int _tmain(int argc, _TCHAR* argv[])
+{
+	gr_complex in[size]; //entrada de simbolos
+	int *out_hard = new int[size*(int)sqrt(mod_size)]; //saida bits int
+	float *out_soft = new float[size*(int)sqrt(mod_size)]; //saida bits LLR
+
+	//teste in
+	in[0].set(2,3);
+	in[1].set(-2,3);
+	in[2].set(2,-3);
+	in[3].set(-2,-3);
+
+	// ^^^^^^^^^^^^^^^^^^ VARIAVEIS QUE JA ESTARAO NO GRC
+
+	tab = new gr_complex[mod_size/4];
+
+	//TABELA DE PONTOS (norma)
+
+	tab[0].set(0.5115, 1.2092);
+	tab[1].set(1.2092, 0.5115);
+	tab[2].set(0.2663, 0.4530);
+	tab[3].set(0.4530, 0.2663);
+
+	// ^^^^^^^^^^^^^^^^^^ VARIAVEIS QUE ESTARAO NO .H DO GRC
+
+	demap.DEMAPPER;
+
+	gr_complex *tab;
+
+
+	DEMAPPER.init(size, mod_size, rate, tab);
+
+	DEMAPPER.demapper_soft(in, out_soft);
+	DEMAPPER.demapper_hard(in, out_hard);
+
+
+
+
+	printf("");
+	return 0;
+}
+
+
+
+
+
+
+
+//OLD
+/*
 {
 	static int M = sqrt(mod_size);
 	gr_complex tab[mod_size];
@@ -176,3 +198,4 @@ int _tmain(int argc, _TCHAR* argv[])
 	return 0;
 }
 
+*/
